@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Flux Klein Benchmark — Image Comparison</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    sans-serif;
+                background: #0d1117;
+                color: #e6edf3;
+                padding: 2rem;
+                padding-top: 0;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 0.5rem;
+                font-size: 1.8rem;
+                padding-top: 1.5rem;
+            }
+            .subtitle {
+                text-align: center;
+                color: #8b949e;
+                margin-bottom: 0.25rem;
+                font-size: 0.95rem;
+                line-height: 1.6;
+            }
+            .stats-bar {
+                text-align: center;
+                color: #8b949e;
+                font-size: 0.82rem;
+                margin-bottom: 1.5rem;
+                line-height: 1.7;
+            }
+            .stats-bar .stat {
+                display: inline-block;
+                background: #161b22;
+                border: 1px solid #21262d;
+                padding: 0.2rem 0.65rem;
+                border-radius: 5px;
+                margin: 0.15rem 0.2rem;
+            }
+            .stats-bar .stat strong {
+                color: #e6edf3;
+            }
+            .controls {
+                text-align: center;
+                margin-bottom: 0rem;
+                position: sticky;
+                top: 0;
+                background: #0d1117;
+                padding: 0.75rem 0;
+                z-index: 10;
+                border-bottom: 1px solid #21262d;
+            }
+            .controls-row {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            .controls button {
+                background: #21262d;
+                color: #e6edf3;
+                border: 1px solid #30363d;
+                padding: 0.45rem 0.9rem;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.82rem;
+                transition: background 0.15s;
+            }
+            .controls button:hover {
+                background: #30363d;
+            }
+            .controls button:active {
+                background: #3a424d;
+            }
+            .controls .sep {
+                width: 1px;
+                height: 24px;
+                background: #30363d;
+                margin: 0 0.3rem;
+            }
+
+            /* Toggle pills */
+            .toggle-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0.3rem 0.75rem;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 0.85rem;
+                transition:
+                    background 0.15s,
+                    opacity 0.15s;
+                border: 1px solid #30363d;
+                background: #21262d;
+                margin: 0 0.15rem;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            .toggle-pill:hover {
+                background: #30363d;
+            }
+            .toggle-pill.off {
+                opacity: 0.35;
+            }
+            .toggle-pill input[type="checkbox"] {
+                display: none;
+            }
+            .toggle-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+
+            /* Size selector */
+            .size-selector {
+                display: inline-flex;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                overflow: hidden;
+                margin: 0 0.3rem;
+            }
+            .size-selector button {
+                border: none;
+                border-radius: 0;
+                border-right: 1px solid #30363d;
+                padding: 0.4rem 0.7rem;
+                font-size: 0.78rem;
+            }
+            .size-selector button:last-child {
+                border-right: none;
+            }
+            .size-selector button.active {
+                background: #388bfd33;
+                color: #58a6ff;
+            }
+
+            /* Card */
+            .card {
+                background: #161b22;
+                border: 1px solid #21262d;
+                border-radius: 8px;
+                margin-bottom: 1.5rem;
+                overflow: hidden;
+            }
+            .card.collapsed .card-body {
+                display: none;
+            }
+            .card-header {
+                padding: 0.75rem 1rem;
+                background: #1c2128;
+                border-bottom: 1px solid #21262d;
+                display: flex;
+                align-items: flex-start;
+                gap: 0.75rem;
+                cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            .card-header:hover {
+                background: #22272e;
+            }
+            .card-header .chevron {
+                color: #484f58;
+                font-size: 0.75rem;
+                flex-shrink: 0;
+                transition: transform 0.2s;
+                margin-top: 0.15rem;
+                width: 1em;
+                text-align: center;
+            }
+            .card.collapsed .card-header .chevron {
+                transform: rotate(-90deg);
+            }
+            .card-header .num {
+                background: #238636;
+                color: #fff;
+                padding: 0.15rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                flex-shrink: 0;
+            }
+            .card-header .prompt-text {
+                color: #8b949e;
+                font-size: 0.85rem;
+                line-height: 1.4;
+                flex: 1;
+            }
+            .card-header .seed-tag {
+                color: #484f58;
+                font-size: 0.72rem;
+                font-family: "SF Mono", "Fira Code", monospace;
+                flex-shrink: 0;
+                margin-top: 0.1rem;
+            }
+
+            /* Image grid */
+            .images {
+                display: grid;
+                gap: 0;
+            }
+            .img-col {
+                padding: 0.75rem;
+            }
+            .img-col:not(:last-child) {
+                border-right: 1px solid #21262d;
+            }
+            .img-label {
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-bottom: 0.4rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .img-label .timing {
+                font-weight: 400;
+                text-transform: none;
+                letter-spacing: 0;
+                font-size: 0.72rem;
+                opacity: 0.7;
+            }
+            .img-wrapper {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 1/1;
+                background: #000;
+                border-radius: 4px;
+                overflow: hidden;
+                cursor: zoom-in;
+            }
+            .img-wrapper img {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border-radius: 4px;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+            .img-wrapper img.loaded {
+                opacity: 1;
+            }
+            .img-wrapper .placeholder {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #30363d;
+                font-size: 0.8rem;
+            }
+            .img-wrapper img.loaded ~ .placeholder {
+                display: none;
+            }
+            .img-wrapper .error-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0, 0, 0, 0.7);
+                color: #f85149;
+                font-size: 0.8rem;
+                text-align: center;
+                padding: 1rem;
+                border-radius: 4px;
+            }
+            .img-wrapper.has-error .error-overlay {
+                display: flex;
+            }
+
+            /* Lightbox */
+            .lightbox {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.92);
+                z-index: 100;
+                align-items: center;
+                justify-content: center;
+                cursor: zoom-out;
+            }
+            .lightbox.active {
+                display: flex;
+            }
+            .lightbox img {
+                max-width: 95vw;
+                max-height: 95vh;
+                object-fit: contain;
+                border-radius: 6px;
+            }
+            .lightbox .lb-label {
+                position: absolute;
+                bottom: 1.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #161b22ee;
+                border: 1px solid #30363d;
+                padding: 0.5rem 1.2rem;
+                border-radius: 8px;
+                font-size: 0.85rem;
+                color: #8b949e;
+                max-width: 80vw;
+                text-align: center;
+                pointer-events: none;
+            }
+            .lightbox .lb-nav {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #21262dcc;
+                border: 1px solid #30363d;
+                color: #e6edf3;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 1.2rem;
+                transition: background 0.15s;
+                z-index: 101;
+            }
+            .lightbox .lb-nav:hover {
+                background: #30363dee;
+            }
+            .lightbox .lb-prev {
+                left: 1rem;
+            }
+            .lightbox .lb-next {
+                right: 1rem;
+            }
+
+            /* Responsive */
+            @media (max-width: 900px) {
+                .images {
+                    grid-template-columns: 1fr !important;
+                }
+                .img-col:not(:last-child) {
+                    border-right: none;
+                    border-bottom: 1px solid #21262d;
+                }
+                body {
+                    padding: 1rem;
+                    padding-top: 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Flux Klein Image Comparison</h1>
+        <p class="subtitle">
+            <strong style="color: #f78166">Prodia 4B</strong> vs
+            <strong style="color: #58a6ff">Prodia-O 4B</strong> vs
+            <strong style="color: #e3b341">Prodia 9B</strong> vs
+            <strong style="color: #3fb950">Fal 4B</strong> vs
+            <strong style="color: #a371f7">Fal 9B</strong>
+            &nbsp;—&nbsp; 100 prompts &nbsp;·&nbsp; 1024×1024
+        </p>
+        <div class="stats-bar" id="statsBar"></div>
+
+        <div class="controls">
+            <div class="controls-row">
+                <!-- Source toggles -->
+                <label class="toggle-pill" data-source="prodia-4b">
+                    <input
+                        type="checkbox"
+                        checked
+                        onchange="updateVisibility()"
+                    />
+                    <span class="toggle-dot" style="background: #f78166"></span>
+                    <span style="color: #f78166">Prodia 4B</span>
+                </label>
+                <label class="toggle-pill" data-source="prodia-o-4b">
+                    <input
+                        type="checkbox"
+                        checked
+                        onchange="updateVisibility()"
+                    />
+                    <span class="toggle-dot" style="background: #58a6ff"></span>
+                    <span style="color: #58a6ff">Prodia-O 4B</span>
+                </label>
+                <label class="toggle-pill" data-source="prodia-9b">
+                    <input type="checkbox" onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #e3b341"></span>
+                    <span style="color: #e3b341">Prodia 9B</span>
+                </label>
+                <label class="toggle-pill" data-source="fal-4b">
+                    <input
+                        type="checkbox"
+                        checked
+                        onchange="updateVisibility()"
+                    />
+                    <span class="toggle-dot" style="background: #3fb950"></span>
+                    <span style="color: #3fb950">Fal 4B</span>
+                </label>
+                <label class="toggle-pill" data-source="fal-9b">
+                    <input type="checkbox" onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #a371f7"></span>
+                    <span style="color: #a371f7">Fal 9B</span>
+                </label>
+
+                <div class="sep"></div>
+
+                <!-- Image size -->
+                <div class="size-selector" id="sizeSelector">
+                    <button onclick="setSize('sm')" title="Small">S</button>
+                    <button
+                        onclick="setSize('md')"
+                        class="active"
+                        title="Medium"
+                    >
+                        M
+                    </button>
+                    <button onclick="setSize('lg')" title="Large">L</button>
+                </div>
+
+                <div class="sep"></div>
+
+                <button onclick="expandAll()">Expand All</button>
+                <button onclick="collapseAll()">Collapse All</button>
+            </div>
+        </div>
+
+        <div id="cards"></div>
+
+        <!-- Lightbox -->
+        <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+            <div class="lb-nav lb-prev" onclick="lbPrev(event)">&#8249;</div>
+            <img id="lbImg" src="" alt="" />
+            <div class="lb-nav lb-next" onclick="lbNext(event)">&#8250;</div>
+            <div class="lb-label" id="lbLabel"></div>
+        </div>
+
+        <script>
+            // ════════════════════════════════════════════════════════════════════
+            //  DATA
+            // ════════════════════════════════════════════════════════════════════
+
+            const BASE = "results/full_20260303_032309";
+
+            const SOURCES = [
+                {
+                    key: "prodia-4b",
+                    label: "Prodia 4B",
+                    cls: "prodia4b",
+                    color: "#f78166",
+                    pathFn: (idx) =>
+                        `flux.2-klein-4b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                    timingKey: null,
+                },
+                {
+                    key: "prodia-o-4b",
+                    label: "Prodia-O 4B",
+                    cls: "prodiao4b",
+                    color: "#58a6ff",
+                    pathFn: (idx) =>
+                        `production_bench_100_images/${String(idx).padStart(3, "0")}.png`,
+                    timingKey: null,
+                },
+                {
+                    key: "prodia-9b",
+                    label: "Prodia 9B",
+                    cls: "prodia9b",
+                    color: "#e3b341",
+                    pathFn: (idx) =>
+                        `flux.2-klein-9b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                    timingKey: null,
+                },
+                {
+                    key: "fal-4b",
+                    label: "Fal 4B",
+                    cls: "fal4b",
+                    color: "#3fb950",
+                    pathFn: (idx) =>
+                        `${BASE}/fal/klein-4b/${String(idx + 1).padStart(4, "0")}_seed${SEEDS[idx]}.png`,
+                    timingKey: "klein-4b",
+                },
+                {
+                    key: "fal-9b",
+                    label: "Fal 9B",
+                    cls: "fal9b",
+                    color: "#a371f7",
+                    pathFn: (idx) =>
+                        `${BASE}/fal/klein-9b/${String(idx + 1).padStart(4, "0")}_seed${SEEDS[idx]}.png`,
+                    timingKey: "klein-9b",
+                },
+            ];
+
+            const PROMPTS = [
+                "A golden retriever runs through a field of tall, dry wheat. The low sun is directly behind the dog, creating a glowing rim-light effect on its fur and lens flare in the camera.",
+                "A portrait of an elderly carpenter in a dark workshop. A single harsh light source from the left illuminates the deep wrinkles on his face and the dust motes in the air, leaving the right side in deep shadow.",
+                "A ceramic bowl of ripe strawberries sits on a linen tablecloth. Soft, cool light from a large North-facing window camera-left creates gentle, blue-tinted shadows and highlights the dewdrops on the fruit.",
+                "A rainy street in Tokyo at midnight. A woman in a translucent raincoat stands under a flickering pink neon sign. The pink light reflects off the wet asphalt and the droplets on her jacket.",
+                "A lone hiker stands on a jagged mountain peak at dusk. The sky is a deep gradient of indigo and orange. The hiker is a sharp black silhouette against the fading light.",
+                "Inside an ancient stone cathedral, heavy beams of sunlight pour through high stained-glass windows, cutting through the smoky incense air to hit the stone floor.",
+                "A candid 90s-style party photo. A group of friends laughing, captured with a harsh on-camera flash that creates sharp shadows against the white wall behind them and slight red-eye.",
+                "A busy city intersection at night. The cars are blurred into long streaks of red and white light, while the stationary skyscrapers remain tack-sharp.",
+                "A macro shot of a butterfly wing. Every individual iridescent scale is visible, shimmering with a metallic green and purple sheen under bright, direct sunlight.",
+                "A deep-sea jellyfish floating in pitch-black water. Its internal organs glow with a soft, pulsing cyan light that illuminates the surrounding translucent tentacles.",
+                "A weathered leather journal lies open on an oak desk. Morning light reveals handwritten entries in faded blue ink next to a pair of brass spectacles and a half-eaten green apple.",
+                "In a cluttered attic, a young girl discovers a glowing mechanical bird inside a dusty birdcage. The bird's gears are brass, and its eyes emit a soft amber light that reflects in the girl's wide eyes.",
+                "A futuristic chef in a stainless steel kitchen carefully places a single translucent leaf onto a glowing violet dessert. Steam rises from the plate, catching the cool blue overhead LED lighting.",
+                "An antique clockmaker's table is covered in hundreds of tiny gears and springs. A magnifying glass rests on a half-finished gold pocket watch, magnifying the intricate engravings on the casing.",
+                "A red fox sits patiently at the edge of a frozen lake. The morning mist is thick, partially obscuring the pine trees in the background, creating a sense of quiet, cold isolation.",
+                "A stack of old, colorful vinyl records sits next to a vintage turntable. A single sunbeam hits the spinning record, showing the texture of the grooves and a few specks of dust.",
+                "A botanist in a glass greenhouse is surrounded by giant tropical ferns. She is sketching a rare blue orchid into a sketchbook, with raindrops sliding down the glass panes behind her.",
+                "On a porch during a summer storm, a wicker rocking horse is wet with rain. Lightning flashes in the distance, turning the purple sky momentarily bright white.",
+                "A knight in tarnished silver armor sits by a small campfire in a dark forest. The orange flames reflect in his visor, and his heavy sword is leaned against a mossy log.",
+                "A street performer in Paris plays a worn wooden accordion. He wears a striped shirt and a beret, and a small charcoal drawing of a cat sits in his open instrument case for tips.",
+                'A minimalist white storefront with the word "KLEIN" written in elegant, thin black serif typography above the door.',
+                'A high-tech laboratory screen displaying the text "SYSTEM ONLINE" in a glowing green monospaced font, surrounded by complex data graphs.',
+                'A cardboard box with the words "FRAGILE: HANDLE WITH CARE" stamped in messy, bold red ink on the side.',
+                'A classic "OPEN" sign in red and blue neon tubing, hanging in a window that is slightly fogged up from the heat inside.',
+                'A birthday cake with "HAPPY 25TH BIRTHDAY" written in sloppy pink frosting, with three lit candles.',
+                'A hand-painted wooden sign pointing toward a forest trail that says "THE DEEP WOODS" in a whimsical, Tolkien-esque script.',
+                'A cinematic movie poster for a film titled "SILENCE." The text is massive, white, and centered, with a tiny lone figure standing at the bottom of the frame.',
+                'A vintage 1950s diner menu that reads "TODAY\'S SPECIAL: CHERRY PIE" in a retro cursive font.',
+                'A protestor holding a cardboard sign that says "SAVE THE BEES" in thick, black marker.',
+                'A golden trophy with an engraved plaque that reads "FIRST PLACE - 2026" in a clean sans-serif font.',
+                "A slice of lime dropped into a glass of sparkling water. The light passes through the green flesh of the lime, and bubbles are clinging to the edges.",
+                "An oil slick on a wet puddle in a parking lot, showing a swirl of rainbow colors (pink, green, blue) against the dark asphalt.",
+                "A polished chrome sphere sitting on a red velvet cushion. The sphere reflects the entire room, including a distorted view of a nearby window.",
+                "A close-up of a thick, chunky knit wool sweater in a cream color. The fibers are fuzzy and soft, catching the warm light of a fireplace.",
+                "An abandoned rusted car in a desert. The paint is peeling in large flakes, revealing the orange, textured rust underneath.",
+                "Thick, golden honey being poured from a wooden dipper. The honey is translucent and forms a slow-moving, heavy ribbon as it falls.",
+                "A close-up of a piece of volcanic basalt rock. The surface is full of small, irregular holes and has a matte, charcoal-gray texture.",
+                'A splash of milk captured at 1/8000th of a second. The droplets form a "crown" shape, perfectly frozen in mid-air against a blue background.',
+                "A silk dress blowing in the wind. The fabric is light and shimmering, showing the way it folds and catches the light as it moves.",
+                "A close-up of a human eye. The iris has intricate patterns of brown and amber, and the wet surface of the eye reflects a soft light source.",
+                "A single red rose in the foreground, sharp and detailed. In the background, a blurred wedding ceremony takes place in a sun-drenched garden.",
+                "A coffee cup on a wooden table in the lower left corner. Through the window in the background, a busy New York City street is visible at night.",
+                "A wide-angle shot of a lone astronaut on the moon. The Earth hangs small and blue in the top right corner of the black sky.",
+                "A cat looking through a glass fishbowl. The cat's face is distorted by the water, and a single orange goldfish swims in the center of the frame.",
+                "A view through a circular stone window. Inside is a dark room, but through the window, we see a vibrant, lush tropical jungle in bright daylight.",
+                "A split-level shot: The top half shows a calm blue ocean surface, and the bottom half shows a colorful coral reef teeming with fish under the water.",
+                "An over-the-shoulder shot of a painter looking at a canvas. We see the back of the painter's head and the painting they are working on.",
+                "A symmetrical shot of a long, empty hotel hallway. Red carpets, gold-framed mirrors on both sides, and a single closed door at the end.",
+                "A bird's-eye view of a spiral staircase in an old library. The books on the shelves form a colorful mosaic around the central vortex.",
+                "A low-angle shot of a giant redwood tree, looking straight up toward the canopy. The sunlight filters through the needles in a starburst pattern.",
+                "A cybernetic samurai standing in the rain. Style: 1980s retro-anime, grainy cel-shaded aesthetic.",
+                "A bowl of fruit on a table. Style: Impressionist oil painting with thick, visible brushstrokes and vibrant colors.",
+                "A portrait of a woman with flowers in her hair. Style: Art Nouveau, intricate gold leaf patterns and organic flowing lines.",
+                "A steampunk airship flying over London. Style: Detailed Victorian etching, black ink on parchment paper.",
+                "A futuristic city. Style: Minimalist architectural render, clean white lines, and soft blue shadows.",
+                "A group of forest animals having a tea party. Style: Whimsical watercolor illustration with soft edges and pastel tones.",
+                "A superhero flying through clouds. Style: 1960s comic book art, Ben-Day dots, and bold black outlines.",
+                "A landscape of Mars. Style: 1950s sci-fi pulp magazine cover, saturated oranges and blues.",
+                "A cat sitting on a moon. Style: 3D claymation, visible fingerprints in the clay, and a stop-motion feel.",
+                "A geometric abstract mountain range. Style: Bauhaus-inspired, flat shapes, and a primary color palette.",
+                "A young boy kneeling on a sidewalk, carefully drawing a sun with a piece of yellow chalk.",
+                "An Olympic archer pulling back a bowstring, eyes focused, muscles in the arm tense, just before releasing the arrow.",
+                "A street dancer mid-air during a backflip, frozen in time against a backdrop of graffiti-covered walls.",
+                "A grandmother teaching a small child how to knead bread dough; their hands are covered in white flour.",
+                "A scientist peering through a microscope, a blue light from the device reflecting on her safety goggles.",
+                "A scene composed entirely of shades of blue: a blue jay on a blueberry bush next to a blue house under a twilight sky.",
+                "A sleek modern chair that is exactly color #FF5733 (bright orange) sitting in a room that is entirely grayscale.",
+                "A vibrant Holi festival scene with clouds of magenta, teal, and yellow powder exploding in the air against white clothing.",
+                'A "Cyber-Noir" palette: Deep blacks and grays contrasted with sharp hits of electric lime and hot pink light.',
+                "A monochromatic sepia photograph of a 1920s jazz band performing on a small stage.",
+                "A frozen waterfall in a pine forest, with giant icicles hanging from the rocks and a thin layer of snow covering everything.",
+                "A vast salt flat in Bolivia, the ground acting as a perfect mirror for the white puffy clouds in the sky.",
+                "An African savanna at sunset; silhouettes of giraffes walking past a giant baobab tree.",
+                "A hidden lagoon with neon-blue bioluminescent water and pink glowing plants along the shore.",
+                "A thunderstorm over a desert; a single bolt of lightning strikes a tall cactus.",
+                "A futuristic library with floating bookshelves and glowing glass floors.",
+                'A cozy "Cottagecore" kitchen with dried herbs hanging from the ceiling and a warm fire in the hearth.',
+                "The interior of a luxury spaceship, looking out a massive bay window at a swirling nebula.",
+                "A brutalist concrete building overgrown with lush green vines and colorful tropical flowers.",
+                "A Japanese tea room with tatami mats, a low wooden table, and a view of a Zen rock garden.",
+                "A high-fashion editorial shot: A model wearing a dress made entirely of iridescent glass shards.",
+                "A close-up of a tuxedo jacket showing the fine weave of the black wool and the silk lapel.",
+                "A nomad in the desert wearing heavy, layered indigo robes that are dusty at the hem.",
+                "A futuristic sneaker design featuring translucent soles and glowing fiber-optic laces.",
+                "A Victorian gown with intricate lace detailing and a corseted waist, displayed on a wooden mannequin.",
+                "A professional product shot of a cold beer bottle with condensation droplets and a thick foam head.",
+                "A stack of pancakes with a melting square of butter and maple syrup dripping down the sides.",
+                "A sushi platter on a black slate, featuring vibrant orange salmon and bright green wasabi.",
+                'A "deconstructed" burger, with the ingredients floating in mid-air in a clean studio setting.',
+                "A steaming bowl of ramen with a soft-boiled egg, green onions, and nori, shot from a top-down angle.",
+                "A tiny harvest mouse asleep inside the petal of a large pink tulip.",
+                "A snow leopard camouflaged against a rocky, snowy mountainside, only its eyes visible.",
+                "A colony of penguins huddling together during an Antarctic blizzard, snow blowing horizontally.",
+                "An owl mid-flight, wings fully spread, talons extended as it approaches a branch.",
+                "A playful octopus changing its skin texture to match a colorful coral reef.",
+                "A busy futuristic market with hundreds of unique characters and market stalls.",
+                "The internal mechanism of a grand piano, showing all the hammers, strings, and wooden levers.",
+                'A "Flat Lay" of a detective\'s desk: a map, a magnifying glass, a pipe, a spent shell casing, and a photo.',
+                "A giant city made entirely of LEGO bricks, with tiny LEGO people walking the streets.",
+                "A surreal image of a forest where the trees are made of giant peacock feathers and the ground is made of velvet.",
+            ];
+
+            const SEEDS = [
+                1373158607, 239081664, 53710185, 1592467582, 590620972,
+                525901257, 479341424, 299655413, 1581559893, 220106708,
+                1453201079, 1590571866, 1915941033, 1171165723, 186699714,
+                1268073013, 906070221, 68252794, 63989048, 201209006, 469521478,
+                499635469, 1085242217, 1292825379, 56985562, 1205264596,
+                427000597, 1537640409, 1395616197, 1506083911, 1170252924,
+                900911955, 473392625, 964669078, 1265438423, 597409993,
+                1738238662, 1866808230, 13955984, 1629526406, 1730483679,
+                342865763, 1499242942, 907557513, 730682428, 596724165,
+                333889689, 462382782, 2055599410, 1639591160, 722831293,
+                219494903, 199170185, 815887679, 207696844, 770902344,
+                1819980298, 738639289, 1296491778, 568054228, 1733294784,
+                93309106, 1567087081, 986607412, 1151541059, 268062141,
+                2089750183, 1980614225, 812896394, 169222133, 1185498233,
+                629595553, 1781132954, 1349993688, 1328261054, 1901493144,
+                1850501473, 776605305, 1239854304, 412936599, 1513056505,
+                149368554, 98407117, 1420052173, 489407816, 1660151622,
+                621455911, 2115747111, 171351961, 1836780820, 499914621,
+                1860759514, 216898921, 816314860, 596943773, 973691210,
+                1365121944, 1791238512, 783471137, 349297013,
+            ];
+
+            // Timing data will be loaded from JSON
+            let timingData = {};
+
+            // ════════════════════════════════════════════════════════════════════
+            //  HELPERS
+            // ════════════════════════════════════════════════════════════════════
+
+            function escapeHtml(s) {
+                const el = document.createElement("span");
+                el.textContent = s;
+                return el.innerHTML;
+            }
+
+            function pad4(n) {
+                return String(n).padStart(4, "0");
+            }
+
+            function getImagePath(source, idx) {
+                return source.pathFn(idx);
+            }
+
+            function sourceHasImage(source, idx) {
+                if (source.minIndex != null && idx < source.minIndex)
+                    return false;
+                return true;
+            }
+
+            // ════════════════════════════════════════════════════════════════════
+            //  LOAD TIMING DATA
+            // ════════════════════════════════════════════════════════════════════
+
+            async function loadTimingData() {
+                const files = {
+                    "klein-4b": `${BASE}/fal_klein-4b_results.json`,
+                    "klein-9b": `${BASE}/fal_klein-9b_results.json`,
+                };
+                // Prodia sources have no timing JSON
+                for (const [key, url] of Object.entries(files)) {
+                    try {
+                        const resp = await fetch(url);
+                        if (resp.ok) {
+                            timingData[key] = await resp.json();
+                        }
+                    } catch (e) {
+                        console.warn(`Could not load timing for ${key}:`, e);
+                    }
+                }
+                populateStats();
+                // Update timing labels if already built
+                document
+                    .querySelectorAll(".timing[data-source][data-index]")
+                    .forEach((el) => {
+                        const t = getTimingStr(
+                            el.dataset.source,
+                            parseInt(el.dataset.index),
+                        );
+                        if (t) el.textContent = t;
+                    });
+            }
+
+            function getTiming(sourceKey, promptIdx) {
+                const arr = timingData[sourceKey];
+                if (!arr || !arr[promptIdx]) return null;
+                return arr[promptIdx];
+            }
+
+            function getTimingStr(sourceKey, promptIdx) {
+                const src = SOURCES.find((s) => s.key === sourceKey);
+                if (!src || !src.timingKey) return "";
+                const t = getTiming(src.timingKey, promptIdx);
+                if (!t) return "";
+                const parts = [];
+                if (t.inference_time_s != null)
+                    parts.push(
+                        `infer: ${(t.inference_time_s * 1000).toFixed(0)}ms`,
+                    );
+                if (t.wall_time_s != null)
+                    parts.push(`wall: ${t.wall_time_s.toFixed(2)}s`);
+                return parts.join(" · ");
+            }
+
+            function getTimingStrByTimingKey(timingKey, promptIdx) {
+                const t = getTiming(timingKey, promptIdx);
+                if (!t) return "";
+                const parts = [];
+                if (t.inference_time_s != null)
+                    parts.push(
+                        `infer: ${(t.inference_time_s * 1000).toFixed(0)}ms`,
+                    );
+                if (t.wall_time_s != null)
+                    parts.push(`wall: ${t.wall_time_s.toFixed(2)}s`);
+                return parts.join(" · ");
+            }
+
+            function populateStats() {
+                const bar = document.getElementById("statsBar");
+                let html = "";
+                for (const src of SOURCES) {
+                    if (!src.timingKey) continue;
+                    const arr = timingData[src.timingKey];
+                    if (!arr) continue;
+                    const infer = arr
+                        .filter((r) => r.inference_time_s != null)
+                        .map((r) => r.inference_time_s);
+                    const wall = arr
+                        .filter(
+                            (r) =>
+                                r.wall_time_s != null && r.status === "Ready",
+                        )
+                        .map((r) => r.wall_time_s);
+                    if (infer.length > 0) {
+                        const avg =
+                            infer.reduce((a, b) => a + b, 0) / infer.length;
+                        const med = [...infer].sort((a, b) => a - b)[
+                            Math.floor(infer.length / 2)
+                        ];
+                        html += `<span class="stat"><strong style="color:${src.color}">${src.label}</strong> inference: avg ${(avg * 1000).toFixed(0)}ms · med ${(med * 1000).toFixed(0)}ms</span> `;
+                    }
+                    if (wall.length > 0) {
+                        const avg =
+                            wall.reduce((a, b) => a + b, 0) / wall.length;
+                        const med = [...wall].sort((a, b) => a - b)[
+                            Math.floor(wall.length / 2)
+                        ];
+                        html += `<span class="stat"><strong style="color:${src.color}">${src.label}</strong> wall: avg ${avg.toFixed(2)}s · med ${med.toFixed(2)}s</span> `;
+                    }
+                }
+                bar.innerHTML = html;
+            }
+
+            // ════════════════════════════════════════════════════════════════════
+            //  BUILD CARDS
+            // ════════════════════════════════════════════════════════════════════
+
+            const container = document.getElementById("cards");
+            const allCards = [];
+            let currentSize = "md";
+
+            PROMPTS.forEach((prompt, idx) => {
+                const num = idx + 1;
+                const seed = SEEDS[idx];
+                const card = document.createElement("div");
+                card.className = "card";
+                card.dataset.index = idx;
+
+                // Header
+                const header = document.createElement("div");
+                header.className = "card-header";
+                header.innerHTML =
+                    `<span class="chevron">▼</span>` +
+                    `<span class="num">${num}</span>` +
+                    `<span class="prompt-text">${escapeHtml(prompt)}</span>`;
+                header.addEventListener("click", () => {
+                    card.classList.toggle("collapsed");
+                });
+                card.appendChild(header);
+
+                // Body
+                const body = document.createElement("div");
+                body.className = "card-body";
+
+                const imagesDiv = document.createElement("div");
+                imagesDiv.className = "images";
+                updateGridCols(imagesDiv);
+
+                SOURCES.forEach((src) => {
+                    const col = document.createElement("div");
+                    col.className = "img-col";
+                    col.dataset.source = src.key;
+
+                    const label = document.createElement("div");
+                    label.className = "img-label";
+                    label.style.color = src.color;
+
+                    const srcSeed =
+                        src.key === "prodia-o-4b"
+                            ? null
+                            : src.key.startsWith("prodia")
+                              ? idx + 42
+                              : SEEDS[idx];
+
+                    const timingSpan = document.createElement("span");
+                    timingSpan.className = "timing";
+                    timingSpan.dataset.source = src.key;
+                    timingSpan.dataset.index = idx;
+
+                    label.innerHTML = `${escapeHtml(src.label)} ${srcSeed != null ? `<span class="timing" style="opacity:0.5">seed ${srcSeed}</span>` : ""} `;
+                    label.appendChild(timingSpan);
+                    col.appendChild(label);
+
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "img-wrapper";
+
+                    const hasImage = sourceHasImage(src, idx);
+
+                    const img = document.createElement("img");
+                    img.alt = `${src.label} — Prompt ${num}`;
+                    img.loading = "lazy";
+                    if (hasImage) {
+                        img.dataset.src = getImagePath(src, idx);
+                    }
+                    img.dataset.source = src.key;
+                    img.dataset.index = idx;
+                    img.addEventListener("load", () =>
+                        img.classList.add("loaded"),
+                    );
+                    img.addEventListener("error", () => {
+                        wrapper.classList.add("has-error");
+                    });
+                    img.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        if (hasImage) openLightbox(src.key, idx);
+                    });
+
+                    const placeholder = document.createElement("div");
+                    placeholder.className = "placeholder";
+                    placeholder.textContent = hasImage
+                        ? "Loading…"
+                        : "No image";
+
+                    const errorOverlay = document.createElement("div");
+                    errorOverlay.className = "error-overlay";
+                    errorOverlay.textContent = hasImage
+                        ? "Failed to load"
+                        : "No image for this prompt";
+
+                    if (!hasImage) {
+                        wrapper.classList.add("has-error");
+                    }
+
+                    wrapper.appendChild(img);
+                    wrapper.appendChild(placeholder);
+                    wrapper.appendChild(errorOverlay);
+                    col.appendChild(wrapper);
+                    imagesDiv.appendChild(col);
+                });
+
+                body.appendChild(imagesDiv);
+                card.appendChild(body);
+                container.appendChild(card);
+                allCards.push(card);
+            });
+
+            // ════════════════════════════════════════════════════════════════════
+            //  LAZY LOADING
+            // ════════════════════════════════════════════════════════════════════
+
+            const lazyObserver = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            const card = entry.target;
+                            card.querySelectorAll("img[data-src]").forEach(
+                                (img) => {
+                                    if (!img.src && img.dataset.src) {
+                                        img.src = img.dataset.src;
+                                        img.removeAttribute("data-src");
+                                    }
+                                },
+                            );
+                            lazyObserver.unobserve(card);
+                        }
+                    });
+                },
+                { rootMargin: "600px 0px" },
+            );
+
+            allCards.forEach((card) => lazyObserver.observe(card));
+
+            // ════════════════════════════════════════════════════════════════════
+            //  TOGGLE PILLS — VISIBILITY
+            // ════════════════════════════════════════════════════════════════════
+
+            // Sync pill visual state on load
+            document
+                .querySelectorAll(".toggle-pill input[type='checkbox']")
+                .forEach((cb) => {
+                    function sync() {
+                        cb.closest(".toggle-pill").classList.toggle(
+                            "off",
+                            !cb.checked,
+                        );
+                    }
+                    cb.addEventListener("change", sync);
+                    sync();
+                });
+
+            function getVisibleSources() {
+                const visible = [];
+                document
+                    .querySelectorAll(".toggle-pill[data-source]")
+                    .forEach((pill) => {
+                        const cb = pill.querySelector("input[type='checkbox']");
+                        if (cb && cb.checked) {
+                            visible.push(pill.dataset.source);
+                        }
+                    });
+                return visible;
+            }
+
+            function updateVisibility() {
+                // Sync pill styles
+                document
+                    .querySelectorAll(".toggle-pill input[type='checkbox']")
+                    .forEach((cb) => {
+                        cb.closest(".toggle-pill").classList.toggle(
+                            "off",
+                            !cb.checked,
+                        );
+                    });
+
+                const visible = getVisibleSources();
+                document
+                    .querySelectorAll(".img-col[data-source]")
+                    .forEach((col) => {
+                        col.style.display = visible.includes(col.dataset.source)
+                            ? ""
+                            : "none";
+                    });
+                // Update grid columns
+                document
+                    .querySelectorAll(".images")
+                    .forEach((g) => updateGridCols(g));
+            }
+
+            function updateGridCols(grid) {
+                const visible = getVisibleSources();
+                const count = visible.length || 1;
+                if (currentSize === "lg") {
+                    grid.style.gridTemplateColumns = "1fr";
+                } else {
+                    grid.style.gridTemplateColumns = `repeat(${count}, 1fr)`;
+                }
+            }
+
+            // ════════════════════════════════════════════════════════════════════
+            //  SIZE SELECTOR
+            // ════════════════════════════════════════════════════════════════════
+
+            function setSize(size) {
+                currentSize = size;
+                document
+                    .querySelectorAll("#sizeSelector button")
+                    .forEach((btn) => {
+                        btn.classList.toggle(
+                            "active",
+                            btn.textContent.trim().toLowerCase() === size[0],
+                        );
+                    });
+                // Adjust aspect ratio
+                const ratio =
+                    size === "sm" ? "1/1" : size === "lg" ? "1/1" : "1/1";
+                document.querySelectorAll(".img-wrapper").forEach((w) => {
+                    w.style.aspectRatio = ratio;
+                });
+                // Adjust grid
+                document
+                    .querySelectorAll(".images")
+                    .forEach((g) => updateGridCols(g));
+                // In large mode, make images full width (one per row)
+                // In small mode, limit max-width
+                document.querySelectorAll(".img-col").forEach((col) => {
+                    if (size === "sm") {
+                        col.style.maxWidth = "400px";
+                    } else {
+                        col.style.maxWidth = "";
+                    }
+                });
+            }
+
+            // ════════════════════════════════════════════════════════════════════
+            //  EXPAND / COLLAPSE
+            // ════════════════════════════════════════════════════════════════════
+
+            function expandAll() {
+                allCards.forEach((c) => c.classList.remove("collapsed"));
+            }
+
+            function collapseAll() {
+                allCards.forEach((c) => c.classList.add("collapsed"));
+            }
+
+            // ════════════════════════════════════════════════════════════════════
+            //  LIGHTBOX
+            // ════════════════════════════════════════════════════════════════════
+
+            let lbSource = null;
+            let lbIndex = 0;
+
+            function openLightbox(sourceKey, promptIdx) {
+                lbSource = sourceKey;
+                lbIndex = promptIdx;
+                updateLightbox();
+                document.getElementById("lightbox").classList.add("active");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeLightbox(e) {
+                if (
+                    e &&
+                    (e.target.classList.contains("lb-nav") ||
+                        e.target.closest(".lb-nav"))
+                )
+                    return;
+                document.getElementById("lightbox").classList.remove("active");
+                document.body.style.overflow = "";
+            }
+
+            function updateLightbox() {
+                const src = SOURCES.find((s) => s.key === lbSource);
+                if (!src) return;
+                const img = document.getElementById("lbImg");
+                img.src = getImagePath(src, lbIndex);
+                const label = document.getElementById("lbLabel");
+                const timing = getTimingStr(lbSource, lbIndex);
+                const lbSeed =
+                    src.key === "prodia-o-4b"
+                        ? null
+                        : src.key.startsWith("prodia")
+                          ? lbIndex + 42
+                          : SEEDS[lbIndex];
+                label.innerHTML =
+                    `<strong style="color:${src.color}">${src.label}</strong> &nbsp;·&nbsp; ` +
+                    `#${lbIndex + 1}` +
+                    (lbSeed != null ? ` &nbsp;·&nbsp; seed ${lbSeed}` : "") +
+                    (timing ? ` &nbsp;·&nbsp; ${timing}` : "") +
+                    `<br><span style="font-size:0.78rem;opacity:0.7">${escapeHtml(PROMPTS[lbIndex].substring(0, 120))}${PROMPTS[lbIndex].length > 120 ? "…" : ""}</span>`;
+            }
+
+            function lbPrev(e) {
+                e.stopPropagation();
+                lbIndex = (lbIndex - 1 + PROMPTS.length) % PROMPTS.length;
+                updateLightbox();
+            }
+
+            function lbNext(e) {
+                e.stopPropagation();
+                lbIndex = (lbIndex + 1) % PROMPTS.length;
+                updateLightbox();
+            }
+
+            // Keyboard navigation
+            document.addEventListener("keydown", (e) => {
+                const lb = document.getElementById("lightbox");
+                if (!lb.classList.contains("active")) return;
+                if (e.key === "Escape") closeLightbox({});
+                if (e.key === "ArrowLeft") {
+                    lbIndex = (lbIndex - 1 + PROMPTS.length) % PROMPTS.length;
+                    updateLightbox();
+                }
+                if (e.key === "ArrowRight") {
+                    lbIndex = (lbIndex + 1) % PROMPTS.length;
+                    updateLightbox();
+                }
+                // Switch source with up/down
+                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                    e.preventDefault();
+                    const visible = getVisibleSources();
+                    if (visible.length < 2) return;
+                    const curIdx = visible.indexOf(lbSource);
+                    if (curIdx === -1) return;
+                    const dir = e.key === "ArrowDown" ? 1 : -1;
+                    const nextIdx =
+                        (curIdx + dir + visible.length) % visible.length;
+                    lbSource = visible[nextIdx];
+                    updateLightbox();
+                }
+            });
+
+            // ════════════════════════════════════════════════════════════════════
+            //  INIT
+            // ════════════════════════════════════════════════════════════════════
+
+            updateVisibility();
+            loadTimingData();
+        </script>
+    </body>
+</html>
