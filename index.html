@@ -34,25 +34,7 @@
                 font-size: 0.95rem;
                 line-height: 1.6;
             }
-            .stats-bar {
-                text-align: center;
-                color: #8b949e;
-                font-size: 0.82rem;
-                margin-bottom: 1.5rem;
-                line-height: 1.7;
-            }
-            .stats-bar .stat {
-                display: inline-block;
-                background: #161b22;
-                border: 1px solid #21262d;
-                padding: 0.2rem 0.65rem;
-                border-radius: 5px;
-                margin: 0.15rem 0.2rem;
-            }
-            .stats-bar .stat strong {
-                color: #e6edf3;
-            }
-            .controls {
+.controls {
                 text-align: center;
                 margin-bottom: 0rem;
                 position: sticky;
@@ -201,15 +183,7 @@
                 line-height: 1.4;
                 flex: 1;
             }
-            .card-header .seed-tag {
-                color: #484f58;
-                font-size: 0.72rem;
-                font-family: "SF Mono", "Fira Code", monospace;
-                flex-shrink: 0;
-                margin-top: 0.1rem;
-            }
-
-            /* Image grid */
+/* Image grid */
             .images {
                 display: grid;
                 gap: 0;
@@ -230,14 +204,7 @@
                 align-items: center;
                 gap: 0.5rem;
             }
-            .img-label .timing {
-                font-weight: 400;
-                text-transform: none;
-                letter-spacing: 0;
-                font-size: 0.72rem;
-                opacity: 0.7;
-            }
-            .img-wrapper {
+.img-wrapper {
                 position: relative;
                 width: 100%;
                 aspect-ratio: 1/1;
@@ -386,8 +353,6 @@
             <strong style="color: #a371f7">Fal 9B</strong>
             &nbsp;—&nbsp; 100 prompts &nbsp;·&nbsp; 1024×1024
         </p>
-        <div class="stats-bar" id="statsBar"></div>
-
         <div class="controls">
             <div class="controls-row">
                 <!-- Source toggles -->
@@ -468,7 +433,6 @@
                     color: "#f78166",
                     pathFn: (idx) =>
                         `final_bench_100_4b/${String(idx).padStart(3, "0")}.png`,
-                    timingKey: null,
                 },
                 
                 {
@@ -478,7 +442,6 @@
                     color: "#e3b341",
                     pathFn: (idx) =>
                         `final_bench_100_9b/${String(idx).padStart(3, "0")}.png`,
-                    timingKey: null,
                 },
                 {
                     key: "fal-4b",
@@ -486,8 +449,7 @@
                     cls: "fal4b",
                     color: "#3fb950",
                     pathFn: (idx) =>
-                        `${BASE}/fal/klein-4b/${String(idx + 1).padStart(4, "0")}_seed${SEEDS[idx]}.png`,
-                    timingKey: "klein-4b",
+                        `${BASE}/fal/klein-4b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
                 },
                 {
                     key: "fal-9b",
@@ -495,8 +457,7 @@
                     cls: "fal9b",
                     color: "#a371f7",
                     pathFn: (idx) =>
-                        `${BASE}/fal/klein-9b/${String(idx + 1).padStart(4, "0")}_seed${SEEDS[idx]}.png`,
-                    timingKey: "klein-9b",
+                        `${BASE}/fal/klein-9b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
                 },
             ];
 
@@ -603,7 +564,7 @@
                 "A surreal image of a forest where the trees are made of giant peacock feathers and the ground is made of velvet.",
             ];
 
-            const SEEDS = [
+            const FAL_SEEDS = [
                 1373158607, 239081664, 53710185, 1592467582, 590620972,
                 525901257, 479341424, 299655413, 1581559893, 220106708,
                 1453201079, 1590571866, 1915941033, 1171165723, 186699714,
@@ -625,9 +586,6 @@
                 1860759514, 216898921, 816314860, 596943773, 973691210,
                 1365121944, 1791238512, 783471137, 349297013,
             ];
-
-            // Timing data will be loaded from JSON
-            let timingData = {};
 
             // ════════════════════════════════════════════════════════════════════
             //  HELPERS
@@ -657,105 +615,6 @@
             //  LOAD TIMING DATA
             // ════════════════════════════════════════════════════════════════════
 
-            async function loadTimingData() {
-                const files = {
-                    "klein-4b": `${BASE}/fal_klein-4b_results.json`,
-                    "klein-9b": `${BASE}/fal_klein-9b_results.json`,
-                };
-                // Prodia sources have no timing JSON
-                for (const [key, url] of Object.entries(files)) {
-                    try {
-                        const resp = await fetch(url);
-                        if (resp.ok) {
-                            timingData[key] = await resp.json();
-                        }
-                    } catch (e) {
-                        console.warn(`Could not load timing for ${key}:`, e);
-                    }
-                }
-                populateStats();
-                // Update timing labels if already built
-                document
-                    .querySelectorAll(".timing[data-source][data-index]")
-                    .forEach((el) => {
-                        const t = getTimingStr(
-                            el.dataset.source,
-                            parseInt(el.dataset.index),
-                        );
-                        if (t) el.textContent = t;
-                    });
-            }
-
-            function getTiming(sourceKey, promptIdx) {
-                const arr = timingData[sourceKey];
-                if (!arr || !arr[promptIdx]) return null;
-                return arr[promptIdx];
-            }
-
-            function getTimingStr(sourceKey, promptIdx) {
-                const src = SOURCES.find((s) => s.key === sourceKey);
-                if (!src || !src.timingKey) return "";
-                const t = getTiming(src.timingKey, promptIdx);
-                if (!t) return "";
-                const parts = [];
-                if (t.inference_time_s != null)
-                    parts.push(
-                        `infer: ${(t.inference_time_s * 1000).toFixed(0)}ms`,
-                    );
-                if (t.wall_time_s != null)
-                    parts.push(`wall: ${t.wall_time_s.toFixed(2)}s`);
-                return parts.join(" · ");
-            }
-
-            function getTimingStrByTimingKey(timingKey, promptIdx) {
-                const t = getTiming(timingKey, promptIdx);
-                if (!t) return "";
-                const parts = [];
-                if (t.inference_time_s != null)
-                    parts.push(
-                        `infer: ${(t.inference_time_s * 1000).toFixed(0)}ms`,
-                    );
-                if (t.wall_time_s != null)
-                    parts.push(`wall: ${t.wall_time_s.toFixed(2)}s`);
-                return parts.join(" · ");
-            }
-
-            function populateStats() {
-                const bar = document.getElementById("statsBar");
-                let html = "";
-                for (const src of SOURCES) {
-                    if (!src.timingKey) continue;
-                    const arr = timingData[src.timingKey];
-                    if (!arr) continue;
-                    const infer = arr
-                        .filter((r) => r.inference_time_s != null)
-                        .map((r) => r.inference_time_s);
-                    const wall = arr
-                        .filter(
-                            (r) =>
-                                r.wall_time_s != null && r.status === "Ready",
-                        )
-                        .map((r) => r.wall_time_s);
-                    if (infer.length > 0) {
-                        const avg =
-                            infer.reduce((a, b) => a + b, 0) / infer.length;
-                        const med = [...infer].sort((a, b) => a - b)[
-                            Math.floor(infer.length / 2)
-                        ];
-                        html += `<span class="stat"><strong style="color:${src.color}">${src.label}</strong> inference: avg ${(avg * 1000).toFixed(0)}ms · med ${(med * 1000).toFixed(0)}ms</span> `;
-                    }
-                    if (wall.length > 0) {
-                        const avg =
-                            wall.reduce((a, b) => a + b, 0) / wall.length;
-                        const med = [...wall].sort((a, b) => a - b)[
-                            Math.floor(wall.length / 2)
-                        ];
-                        html += `<span class="stat"><strong style="color:${src.color}">${src.label}</strong> wall: avg ${avg.toFixed(2)}s · med ${med.toFixed(2)}s</span> `;
-                    }
-                }
-                bar.innerHTML = html;
-            }
-
             // ════════════════════════════════════════════════════════════════════
             //  BUILD CARDS
             // ════════════════════════════════════════════════════════════════════
@@ -766,7 +625,6 @@
 
             PROMPTS.forEach((prompt, idx) => {
                 const num = idx + 1;
-                const seed = SEEDS[idx];
                 const card = document.createElement("div");
                 card.className = "card";
                 card.dataset.index = idx;
@@ -800,15 +658,7 @@
                     label.className = "img-label";
                     label.style.color = src.color;
 
-                    const srcSeed = src.key.startsWith("fal") ? SEEDS[idx] : null;
-
-                    const timingSpan = document.createElement("span");
-                    timingSpan.className = "timing";
-                    timingSpan.dataset.source = src.key;
-                    timingSpan.dataset.index = idx;
-
-                    label.innerHTML = `${escapeHtml(src.label)} ${srcSeed != null ? `<span class="timing" style="opacity:0.5">seed ${srcSeed}</span>` : ""} `;
-                    label.appendChild(timingSpan);
+                    label.textContent = src.label;
                     col.appendChild(label);
 
                     const wrapper = document.createElement("div");
@@ -1035,13 +885,9 @@
                 const img = document.getElementById("lbImg");
                 img.src = getImagePath(src, lbIndex);
                 const label = document.getElementById("lbLabel");
-                const timing = getTimingStr(lbSource, lbIndex);
-                const lbSeed = src.key.startsWith("fal") ? SEEDS[lbIndex] : null;
+const lbSeed = src.key.startsWith("fal") ? FAL_SEEDS[lbIndex] : null;
                 label.innerHTML =
-                    `<strong style="color:${src.color}">${src.label}</strong> &nbsp;·&nbsp; ` +
-                    `#${lbIndex + 1}` +
-                    (lbSeed != null ? ` &nbsp;·&nbsp; seed ${lbSeed}` : "") +
-                    (timing ? ` &nbsp;·&nbsp; ${timing}` : "") +
+                    `<strong style="color:${src.color}">${src.label}</strong> &nbsp;&middot;&nbsp; #${lbIndex + 1}` +
                     `<br><span style="font-size:0.78rem;opacity:0.7">${escapeHtml(PROMPTS[lbIndex].substring(0, 120))}${PROMPTS[lbIndex].length > 120 ? "…" : ""}</span>`;
             }
 
@@ -1090,7 +936,7 @@
             // ════════════════════════════════════════════════════════════════════
 
             updateVisibility();
-            loadTimingData();
+            
         </script>
     </body>
 </html>
