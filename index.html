@@ -476,7 +476,7 @@
                     cls: "prodia4b",
                     color: "#f78166",
                     pathFn: (idx) =>
-                        `flux.2-klein-4b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                        `final_bench_100_4b/${String(idx).padStart(3, "0")}.png`,
                     timingKey: null,
                 },
                 {
@@ -494,7 +494,7 @@
                     cls: "prodia9b",
                     color: "#e3b341",
                     pathFn: (idx) =>
-                        `flux.2-klein-9b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                        `final_bench_100_9b/${String(idx).padStart(3, "0")}.png`,
                     timingKey: null,
                 },
                 {
@@ -817,12 +817,7 @@
                     label.className = "img-label";
                     label.style.color = src.color;
 
-                    const srcSeed =
-                        src.key === "prodia-o-4b"
-                            ? null
-                            : src.key.startsWith("prodia")
-                              ? idx + 42
-                              : SEEDS[idx];
+                    const srcSeed = src.key.startsWith("fal") ? SEEDS[idx] : null;
 
                     const timingSpan = document.createElement("span");
                     timingSpan.className = "timing";
@@ -1058,12 +1053,7 @@
                 img.src = getImagePath(src, lbIndex);
                 const label = document.getElementById("lbLabel");
                 const timing = getTimingStr(lbSource, lbIndex);
-                const lbSeed =
-                    src.key === "prodia-o-4b"
-                        ? null
-                        : src.key.startsWith("prodia")
-                          ? lbIndex + 42
-                          : SEEDS[lbIndex];
+                const lbSeed = src.key.startsWith("fal") ? SEEDS[lbIndex] : null;
                 label.innerHTML =
                     `<strong style="color:${src.color}">${src.label}</strong> &nbsp;·&nbsp; ` +
                     `#${lbIndex + 1}` +
