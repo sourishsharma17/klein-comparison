@@ -358,29 +358,30 @@
         <div class="controls">
             <div class="controls-row">
                 <!-- Source toggles -->
+                <label class="toggle-pill" data-source="original-4b">
+                    <input type="checkbox" checked onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #8b949e"></span>
+                    <span style="color: #8b949e">Original 4B</span>
+                </label>
                 <label class="toggle-pill" data-source="prodia-4b">
-                    <input
-                        type="checkbox"
-                        checked
-                        onchange="updateVisibility()"
-                    />
+                    <input type="checkbox" checked onchange="updateVisibility()" />
                     <span class="toggle-dot" style="background: #f78166"></span>
                     <span style="color: #f78166">Prodia 4B</span>
                 </label>
-                
+                <label class="toggle-pill" data-source="fal-4b">
+                    <input type="checkbox" checked onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #3fb950"></span>
+                    <span style="color: #3fb950">Fal 4B</span>
+                </label>
+                <label class="toggle-pill" data-source="original-9b">
+                    <input type="checkbox" onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #6e7681"></span>
+                    <span style="color: #6e7681">Original 9B</span>
+                </label>
                 <label class="toggle-pill" data-source="prodia-9b">
                     <input type="checkbox" onchange="updateVisibility()" />
                     <span class="toggle-dot" style="background: #e3b341"></span>
                     <span style="color: #e3b341">Prodia 9B</span>
-                </label>
-                <label class="toggle-pill" data-source="fal-4b">
-                    <input
-                        type="checkbox"
-                        checked
-                        onchange="updateVisibility()"
-                    />
-                    <span class="toggle-dot" style="background: #3fb950"></span>
-                    <span style="color: #3fb950">Fal 4B</span>
                 </label>
                 <label class="toggle-pill" data-source="fal-9b">
                     <input type="checkbox" onchange="updateVisibility()" />
@@ -389,8 +390,6 @@
                 </label>
 
                 <div class="sep"></div>
-
-                <!-- Image size -->
                 <div class="size-selector" id="sizeSelector">
                     <button onclick="setSize('sm')" title="Small">S</button>
                     <button
@@ -429,21 +428,20 @@
 
             const SOURCES = [
                 {
+                    key: "original-4b",
+                    label: "Original 4B",
+                    cls: "original4b",
+                    color: "#8b949e",
+                    pathFn: (idx) =>
+                        `original_4b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                },
+                {
                     key: "prodia-4b",
                     label: "Prodia 4B",
                     cls: "prodia4b",
                     color: "#f78166",
                     pathFn: (idx) =>
                         `final_bench_100_4b/${String(idx).padStart(3, "0")}.png`,
-                },
-                
-                {
-                    key: "prodia-9b",
-                    label: "Prodia 9B",
-                    cls: "prodia9b",
-                    color: "#e3b341",
-                    pathFn: (idx) =>
-                        `final_bench_100_9b/${String(idx).padStart(3, "0")}.png`,
                 },
                 {
                     key: "fal-4b",
@@ -452,6 +450,22 @@
                     color: "#3fb950",
                     pathFn: (idx) =>
                         `${BASE}/fal/klein-4b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
+                },
+                {
+                    key: "original-9b",
+                    label: "Original 9B",
+                    cls: "original9b",
+                    color: "#6e7681",
+                    pathFn: (idx) =>
+                        `original_9b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                },
+                {
+                    key: "prodia-9b",
+                    label: "Prodia 9B",
+                    cls: "prodia9b",
+                    color: "#e3b341",
+                    pathFn: (idx) =>
+                        `final_bench_100_9b/${String(idx).padStart(3, "0")}.png`,
                 },
                 {
                     key: "fal-9b",
