@@ -381,7 +381,6 @@
         <h1>Flux Klein Image Comparison</h1>
         <p class="subtitle">
             <strong style="color: #f78166">Prodia 4B</strong> vs
-            <strong style="color: #58a6ff">Prodia-O 4B</strong> vs
             <strong style="color: #e3b341">Prodia 9B</strong> vs
             <strong style="color: #3fb950">Fal 4B</strong> vs
             <strong style="color: #a371f7">Fal 9B</strong>
@@ -401,15 +400,7 @@
                     <span class="toggle-dot" style="background: #f78166"></span>
                     <span style="color: #f78166">Prodia 4B</span>
                 </label>
-                <label class="toggle-pill" data-source="prodia-o-4b">
-                    <input
-                        type="checkbox"
-                        checked
-                        onchange="updateVisibility()"
-                    />
-                    <span class="toggle-dot" style="background: #58a6ff"></span>
-                    <span style="color: #58a6ff">Prodia-O 4B</span>
-                </label>
+                
                 <label class="toggle-pill" data-source="prodia-9b">
                     <input type="checkbox" onchange="updateVisibility()" />
                     <span class="toggle-dot" style="background: #e3b341"></span>
@@ -479,15 +470,7 @@
                         `final_bench_100_4b/${String(idx).padStart(3, "0")}.png`,
                     timingKey: null,
                 },
-                {
-                    key: "prodia-o-4b",
-                    label: "Prodia-O 4B",
-                    cls: "prodiao4b",
-                    color: "#58a6ff",
-                    pathFn: (idx) =>
-                        `production_bench_100_images/${String(idx).padStart(3, "0")}.png`,
-                    timingKey: null,
-                },
+                
                 {
                     key: "prodia-9b",
                     label: "Prodia 9B",
