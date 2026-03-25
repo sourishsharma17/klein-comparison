@@ -347,10 +347,10 @@
     <body>
         <h1>Flux Klein Image Comparison</h1>
         <p class="subtitle">
-            <strong style="color: #8b949e">Original 4B</strong> vs
+            <strong style="color: #58a6ff">BFL 4B</strong> vs
             <strong style="color: #f78166">Prodia 4B</strong> vs
             <strong style="color: #3fb950">Fal 4B</strong> vs
-            <strong style="color: #6e7681">Original 9B</strong> vs
+            <strong style="color: #8b949e">BFL 9B</strong> vs
             <strong style="color: #e3b341">Prodia 9B</strong> vs
             <strong style="color: #a371f7">Fal 9B</strong>
             &nbsp;—&nbsp; 100 prompts &nbsp;·&nbsp; 1024×1024
@@ -358,10 +358,10 @@
         <div class="controls">
             <div class="controls-row">
                 <!-- Source toggles -->
-                <label class="toggle-pill" data-source="original-4b">
+                <label class="toggle-pill" data-source="bfl-4b">
                     <input type="checkbox" checked onchange="updateVisibility()" />
-                    <span class="toggle-dot" style="background: #8b949e"></span>
-                    <span style="color: #8b949e">Original 4B</span>
+                    <span class="toggle-dot" style="background: #58a6ff"></span>
+                    <span style="color: #58a6ff">BFL 4B</span>
                 </label>
                 <label class="toggle-pill" data-source="prodia-4b">
                     <input type="checkbox" checked onchange="updateVisibility()" />
@@ -373,10 +373,10 @@
                     <span class="toggle-dot" style="background: #3fb950"></span>
                     <span style="color: #3fb950">Fal 4B</span>
                 </label>
-                <label class="toggle-pill" data-source="original-9b">
+                <label class="toggle-pill" data-source="bfl-9b">
                     <input type="checkbox" onchange="updateVisibility()" />
-                    <span class="toggle-dot" style="background: #6e7681"></span>
-                    <span style="color: #6e7681">Original 9B</span>
+                    <span class="toggle-dot" style="background: #8b949e"></span>
+                    <span style="color: #8b949e">BFL 9B</span>
                 </label>
                 <label class="toggle-pill" data-source="prodia-9b">
                     <input type="checkbox" onchange="updateVisibility()" />
@@ -428,12 +428,12 @@
 
             const SOURCES = [
                 {
-                    key: "original-4b",
-                    label: "Original 4B",
-                    cls: "original4b",
-                    color: "#8b949e",
+                    key: "bfl-4b",
+                    label: "BFL 4B",
+                    cls: "bfl4b",
+                    color: "#58a6ff",
                     pathFn: (idx) =>
-                        `original_4b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                        `bfl_4b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
                 },
                 {
                     key: "prodia-4b",
@@ -452,12 +452,12 @@
                         `${BASE}/fal/klein-4b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
                 },
                 {
-                    key: "original-9b",
-                    label: "Original 9B",
-                    cls: "original9b",
-                    color: "#6e7681",
+                    key: "bfl-9b",
+                    label: "BFL 9B",
+                    cls: "bfl9b",
+                    color: "#8b949e",
                     pathFn: (idx) =>
-                        `original_9b/${String(idx).padStart(3, "0")}_seed${idx + 42}.png`,
+                        `bfl_9b/${String(idx + 1).padStart(4, "0")}_seed${FAL_SEEDS[idx]}.png`,
                 },
                 {
                     key: "prodia-9b",
