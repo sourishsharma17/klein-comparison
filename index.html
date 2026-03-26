@@ -349,6 +349,7 @@
         <p class="subtitle">
             <strong style="color: #58a6ff">BFL 4B</strong> vs
             <strong style="color: #f78166">Prodia 4B</strong> vs
+            <strong style="color: #d2a8ff">Prodia FP4 4B</strong> vs
             <strong style="color: #3fb950">Fal 4B</strong> vs
             <strong style="color: #8b949e">BFL 9B</strong> vs
             <strong style="color: #e3b341">Prodia 9B</strong> vs
@@ -367,6 +368,11 @@
                     <input type="checkbox" checked onchange="updateVisibility()" />
                     <span class="toggle-dot" style="background: #f78166"></span>
                     <span style="color: #f78166">Prodia 4B</span>
+                </label>
+                <label class="toggle-pill" data-source="prodia-fp4-4b">
+                    <input type="checkbox" checked onchange="updateVisibility()" />
+                    <span class="toggle-dot" style="background: #d2a8ff"></span>
+                    <span style="color: #d2a8ff">Prodia FP4 4B</span>
                 </label>
                 <label class="toggle-pill" data-source="fal-4b">
                     <input type="checkbox" checked onchange="updateVisibility()" />
@@ -442,6 +448,14 @@
                     color: "#f78166",
                     pathFn: (idx) =>
                         `final_bench_100_4b/${String(idx).padStart(3, "0")}.png`,
+                },
+                {
+                    key: "prodia-fp4-4b",
+                    label: "Prodia FP4 4B",
+                    cls: "prodiafp44b",
+                    color: "#d2a8ff",
+                    pathFn: (idx) =>
+                        `fp4_bench_100_images/${String(idx).padStart(3, "0")}.png`,
                 },
                 {
                     key: "fal-4b",
